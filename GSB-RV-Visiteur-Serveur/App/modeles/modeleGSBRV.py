@@ -26,20 +26,17 @@ def seConnecter( matricule , mdp ) :
 	try :
 		curseur = getConnexionBD().cursor()
 		requete = '''
-					select vis_nom , vis_prenom
-					from Visiteur
-					inner join Travailler as t1
-					on t1.vis_matricule = Visiteur.vis_matricule
-					where t1.jjmmaa = (
-						select MAX(t2.jjmmaa) 
-						from Travailler as t2 
-						where t2.vis_matricule = t1.vis_matricule
-					) 
-					and t1.tra_role <> 'Responsable'
-					and Visiteur.vis_matricule = %s
+					SELECT vis_nom, vis_prenom					
+					FROM Visiteur
+					INNER JOIN Travailler 
+					ON Visiteur.vis_matricule = Travailler.vis_matricule
+					WHERE tra_role LIKE "Responsable"
+					AND jjmmaa = (SELECT max(jjmmaa) FROM Travailler where tra_role = "Responsable" )
+					AND Visiteur.vis_matricule LIKE %s
+					and vis_mdp LIKE %s 
 				'''
 
-		curseur.execute( requete , ( matricule , ) )
+		curseur.execute( requete , ( matricule ,mdp) )
 		
 		enregistrement = curseur.fetchone()
 		
@@ -264,8 +261,38 @@ def enregistrerEchantillonsOfferts( matricule , numRapport , echantillons ) :
 	except :
 		return None
 
+
+def getMotifs():
+	try:
+		curseur = getConnexionBD().cursor()
+		requete = '''
+					select mot_num , mot_libelle
+					from Motif
+				'''
+
+		curseur.execute(requete, ())
+
+		enregistrements = curseur.fetchall()
+
+		motifs = []
+		for unEnregistrement in enregistrements:
+			unMotif = {}
+			unMotif['mot_num'] = unEnregistrement[0]
+			unMotif['mot_libelle'] = unEnregistrement[1]
+
+			motifs.append(unMotif)
+
+		curseur.close()
+		return motifs
+
+	except:
+		return None
+
+
+
 		
 if __name__ == '__main__' :
+		'''
 		print('Authentification du visiteur a131 :')
 		print(seConnecter( 'a131' , '' ))
 		print
@@ -288,7 +315,7 @@ if __name__ == '__main__' :
 		print ('Générer numero rapport pour le visiteur a131 :')
 		print (genererNumeroRapportVisite( 'a131' ))
 		print
-		'''
+		
 		print 'Générer numero rapport pour le visiteur t60 :'
 		print genererNumeroRapportVisite( 't60' )
 		print
@@ -305,11 +332,18 @@ if __name__ == '__main__' :
 		print 'Enregistrer les echantillons offerts par le visiteur a131 lors de sa 1ère visite :'
 		print enregistrerEchantillonsOfferts( 'a131' , 1 , echantillons )
 		print
-		'''
 		
 		print ('Liste des medicaments offerts par le visiteur a131 lors de sa 1ère visite :')
 		for uneOffre in getEchantillonsOfferts( 'a131' , 1 ) :
 			print (uneOffre)
 		print
 		
+
+		for unMotifs in getMotifs():
+			print(unMotifs)
+		print
+		'''
+		a = seConnecter("a131","azerty")
+		print (a)
+
 		

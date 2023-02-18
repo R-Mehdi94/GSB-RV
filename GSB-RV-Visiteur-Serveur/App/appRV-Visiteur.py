@@ -28,8 +28,15 @@ def seConnecter( matricule , mdp ) :
 def getRapportsVisite( matricule , mois , annee ) :
 	rapports = modeleGSBRV.getRapportsVisite( matricule , mois , annee )
 	
-	if rapports != None :
-		reponse = make_response( json.dumps( rapports ) )
+	if  not(rapports) :
+		reponse = make_response('')
+		reponse.mimetype = 'application/json'
+		reponse.status_code = 404
+		return reponse + print("Non trouvé")
+
+
+	elif rapports != None :
+		reponse = make_response(json.dumps(rapports))
 		reponse.mimetype = 'application/json'
 		reponse.status_code = 200
 	else :
@@ -103,11 +110,11 @@ def addRapportVisite() :
 @app.route( '/rapports/echantillons/<matricule>/<numRapport>' , methods = [ 'POST' ] )
 def addEchantillonsOfferts( matricule , numRapport ) :
 	echantillons = json.loads( request.data )
-	nbEchantillons = modeleGSBRV.enregistrerEchantillonsOfferts( matricule , numRapport , echantillons )
+	nbOffres = modeleGSBRV.enregistrerEchantillonsOfferts( matricule , numRapport , echantillons )
+
 	
-	
-	reponse = make_response( '' )												
-	if numRapport != None :
+	reponse = make_response( '' )
+	if nbOffres != None :
 		reponse.headers[ 'Location' ] = '/rapports/echantillons/%s/%s' % ( matricule , numRapport )
 		reponse.status_code = 201
 	else :
@@ -115,8 +122,19 @@ def addEchantillonsOfferts( matricule , numRapport ) :
 	return reponse
 
 
+@app.route('/motifs', methods=['GET'])
+def getMotifs():
+	motifs = modeleGSBRV.getMotifs()
 
-
+	if motifs != None:
+		reponse = make_response(json.dumps(motifs))
+		reponse.mimetype = 'application/json'
+		reponse.status_code = 200
+	else:
+		reponse = make_response('')
+		reponse.mimetype = 'application/json'
+		reponse.status_code = 404
+	return reponse
 
 
 if __name__ == '__main__' :
